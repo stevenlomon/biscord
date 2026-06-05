@@ -61,8 +61,25 @@ app.get("/users", async (req, res) => {
 })
 
 // AUTH ENDPOINTS
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
+  // This is ugly, I *know* haha
+  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
+  const users = await response.json();
+  
+  for (let user of users) { // Intuition just whispered.. we can use `.in()` here?
+    if (req.body.username === user.username && await bcrypt.compare(req.body.password, user.encrypted_pw)) {
+      (req.session as any).user_id = user.id;
+      return res.json({
+        "success": "ok"
+      });
+    } else {
+      return res.status(401).json({
+        "success": "not ok"
+      });
+    }
+  }
 
+  // res.send(":)");
 })
 
 
