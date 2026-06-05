@@ -1,2 +1,3 @@
 I will return to these when I have a 95% me 5% AI working v1 proof of concept working:
 * verbatimModuleSyntax: true?
+* Why does bcrypt.hash return a Promise??

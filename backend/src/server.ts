@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 let app = express();
@@ -10,14 +11,18 @@ app.get("/", (req, res) => {
   res.send(":)");
 });
 
-app.post("/create-user", (req, res) => {
+app.post("/create-user", async (req, res) => {
   const joined_at = new Date().toLocaleString(); // I'll refine this later
+  const raw_password = req.body.password;
+  const encryped_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :D
   // Will take username and raw_password from body
   // TODO: If successful, add User to db
+
   res.status(201).json({
     "success": "ok",
     "data": {
       "username": req.body.username,
+      "encryped_pw": encryped_password,
       "joined_at": joined_at,
       // Might add more
     }
