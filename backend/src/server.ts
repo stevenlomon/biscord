@@ -78,7 +78,6 @@ app.post("/login", async (req, res) => {
   for (let user of users) { // Intuition just whispered.. we can use `.in()` here?
     if (req.body.username === user.username && await bcrypt.compare(req.body.password, user.encrypted_pw)) {
       (req.session as any).user_id = user.id;
-      (req.session as any).user_name = user.username;
       return res.json({
         "success": "ok"
       });
@@ -93,11 +92,23 @@ app.post("/login", async (req, res) => {
 })
 
 // LOGGED IN ENDPOINTS
-app.get("/profile", requireAuth, (req, res) => {
+app.get("/profile", requireAuth, async (req, res) => {
+  // Find the user in Users using only req.session.user_id
+  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
+  const users = await response.json();
+
+  let current_user;
+  for (let user of users) {
+    if (user.id === (req.session as any).user_id) {
+      current_user = user;
+    }
+  }
+
   res.json({
     "data": {
-      "user_id": (req.session as any).user_id,
-      "username": (req.session as any).user_name
+      "user_id": current_user.id,
+      "username": current_user.username,
+      "bio": current_user.bio
     }
   })
 })
