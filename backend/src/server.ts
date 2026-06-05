@@ -1,12 +1,33 @@
 import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import session from "express-session";
 
 dotenv.config();
 let app = express();
 
-app.use('/static', express.static('public'));
 app.use(express.json());
+app.use('/static', express.static('public'));
+app.use(session({
+  name: "biscord-cookie",
+  secret: "super secret!",
+  saveUninitialized: false,
+  resave: true,
+  cookie: {
+    "httpOnly": true,
+    "maxAge": 5 * 60 * 1000
+  }
+}));
+
+// // This can surely be done in a more elegant way
+// const fetchUsers = async () => {
+//   const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
+//   const data = await response.json();
+//   return data;
+// }
+// const USERS = fetchUsers();
+// console.log(USERS);
+// That.. is not gonna work haha
 
 app.get("/", (req, res) => {
   res.send(":)");
@@ -32,6 +53,12 @@ app.post("/create-user", async (req, res) => {
     }
   });
 });
+
+app.get("/users", async (req, res) => {
+  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
+  const data = await response.json();
+  res.json(data);
+})
 
 // AUTH ENDPOINTS
 app.post("/login", (req, res) => {
