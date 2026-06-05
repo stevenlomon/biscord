@@ -1,4 +1,5 @@
-import express, {Request, Response, NextFunction} from "express";
+import express from "express";
+import {Request, Response, NextFunction} from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
@@ -77,6 +78,7 @@ app.post("/login", async (req, res) => {
   for (let user of users) { // Intuition just whispered.. we can use `.in()` here?
     if (req.body.username === user.username && await bcrypt.compare(req.body.password, user.encrypted_pw)) {
       (req.session as any).user_id = user.id;
+      (req.session as any).user_name = user.username;
       return res.json({
         "success": "ok"
       });
@@ -88,6 +90,16 @@ app.post("/login", async (req, res) => {
   }
 
   // res.send(":)");
+})
+
+// LOGGED IN ENDPOINTS
+app.get("/profile", requireAuth, (req, res) => {
+  res.json({
+    "data": {
+      "user_id": (req.session as any).user_id,
+      "username": (req.session as any).user_name
+    }
+  })
 })
 
 
