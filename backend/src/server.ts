@@ -7,6 +7,7 @@ import session from "express-session";
 dotenv.config();
 let app = express();
 
+// Middleware
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if ((req.session as any).user_id) {
     return next();
@@ -14,6 +15,22 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     res.send("Please log in!")
   }
 };
+
+// Helper functions
+const getCurrentUser = async (session: any) => {
+  // Find the user in Users using only req.session.user_id
+  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
+  const users = await response.json();
+
+  let current_user;
+  for (let user of users) {
+    if (user.id === session.user_id) {
+      current_user = user;
+    }
+  }
+
+  return current_user;
+}
 
 app.use(express.json());
 app.use('/static', express.static('public'));
@@ -93,16 +110,7 @@ app.post("/login", async (req, res) => {
 
 // LOGGED IN ENDPOINTS
 app.get("/profile", requireAuth, async (req, res) => {
-  // Find the user in Users using only req.session.user_id
-  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
-  const users = await response.json();
-
-  let current_user;
-  for (let user of users) {
-    if (user.id === (req.session as any).user_id) {
-      current_user = user;
-    }
-  }
+  const current_user = await getCurrentUser(req.session);
 
   res.json({
     "data": {
@@ -110,8 +118,23 @@ app.get("/profile", requireAuth, async (req, res) => {
       "username": current_user.username,
       "bio": current_user.bio
     }
-  })
-})
+  });
+});
+
+app.patch("/edit-bio", requireAuth, async (req, res) => {
+  const current_user = await getCurrentUser(req.session);
+  
+  // Here's where we would change the bio for the user in db
+
+  res.json({
+    "success": "ok",
+    "data": {
+      "user_id": current_user.id,
+      "username": current_user.username,
+      "bio": req.body.bio
+    }
+  });
+});
 
 
 // START WEB SERVER
