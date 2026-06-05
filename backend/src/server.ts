@@ -1,10 +1,18 @@
-import express from "express";
+import express, {Request, Response, NextFunction} from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
 
 dotenv.config();
 let app = express();
+
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if ((req.session as any).user_id) {
+    return next();
+  } else {
+    res.send("Please log in!")
+  }
+};
 
 app.use(express.json());
 app.use('/static', express.static('public'));
