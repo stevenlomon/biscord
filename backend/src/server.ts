@@ -67,15 +67,23 @@ app.get("/", (req, res) => {
 // USER ENDPOINTS
 app.post("/create-user", async (req, res) => {
   const user_id = crypto.randomUUID();
-  const joined_at = new Date().toLocaleString(); // I'll refine this later
+  // const joined_at = new Date().toLocaleString(); // I'll refine this later. Nope, our Postgre DB can handle this one!
   const raw_password = req.body.password;
   const hashed_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
   // Will take username and raw_password from body
   
   // TODO: If successful, add User to db
   // First we need to add the hashed password to the Auth table
-  const result = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashed_password]); // Using parameterized queries. And "Auth" needs to be in double quotes!
-  console.log(result.rows[0])
+  const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashed_password]); // Using parameterized queries. And "Auth" needs to be in double quotes!
+  console.log(result1.rows[0])
+
+  // Grab the id of the newly created Auth row
+  const AuthId = result1.rows[0].id;
+
+  // Second query for the actual User row
+  // We handle id, username and authId server-side, our Postgre DB handles created_at and sets bio, online_status_id and profile_pic_url as a default NULL!
+  const result2 = await pgClient.query('INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *', [user_id, req.body.username, AuthId]);
+  console.log(result2.rows[0])
 
   res.status(201).json({
     "success": "ok",
@@ -83,7 +91,6 @@ app.post("/create-user", async (req, res) => {
       "id": user_id,
       "username": req.body.username,
       "hashed_pw": hashed_password,
-      "joined_at": joined_at,
       // Might add more
     }
   });
