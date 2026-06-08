@@ -18,6 +18,10 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Helper functions
+const connectToPg = async() => {
+  await pgClient.connect()
+}
+
 const getCurrentUser = async (session: any) => {
   // Find the user in Users using only req.session.user_id
   const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
@@ -65,18 +69,20 @@ app.post("/create-user", async (req, res) => {
   const user_id = crypto.randomUUID();
   const joined_at = new Date().toLocaleString(); // I'll refine this later
   const raw_password = req.body.password;
-  const encryped_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :D
+  const hashed_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
   // Will take username and raw_password from body
   
   // TODO: If successful, add User to db
-  
+  // First we need to add the hashed password to the Auth table
+  const result = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashed_password]); // Using parameterized queries. And "Auth" needs to be in double quotes!
+  console.log(result.rows[0])
 
   res.status(201).json({
     "success": "ok",
     "data": {
       "id": user_id,
       "username": req.body.username,
-      "encryped_pw": encryped_password,
+      "hashed_pw": hashed_password,
       "joined_at": joined_at,
       // Might add more
     }
@@ -141,8 +147,11 @@ app.patch("/edit-bio", requireAuth, async (req, res) => {
 
 
 // START WEB SERVER
-let port = process.env.PORT || 3000;
+let port = process.env.WEB_SERVER_PORT || 3000;
 
 app.listen(port, () => {
+  connectToPg();
+
+  console.log(`Connected to PG Client`)
   console.log(`Web server started and listening at port ${port}`);
 });

@@ -1,9 +1,14 @@
 import pg from 'pg'
-const { Pool, Client } = pg
+import dotenv from 'dotenv';
 
-// pools will use environment variables for connection information
-const pool = new Pool();
+dotenv.config(); // We need to load the variables BEFORE creating the client!
+const { Client } = pg
 
-const pgClient = new Client();
+// clients will also use environment variables for connection information
+const pgClient = new Client({
+  ssl: {
+    rejectUnauthorized: false, // To fix `no encryption` error
+  }
+});
 
 export default pgClient;
