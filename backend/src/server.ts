@@ -3,6 +3,7 @@ import {Request, Response, NextFunction} from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import pgClient from "./db";
 
 dotenv.config();
 let app = express();
@@ -66,7 +67,9 @@ app.post("/create-user", async (req, res) => {
   const raw_password = req.body.password;
   const encryped_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :D
   // Will take username and raw_password from body
+  
   // TODO: If successful, add User to db
+  
 
   res.status(201).json({
     "success": "ok",
