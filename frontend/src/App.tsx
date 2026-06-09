@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import Layout from "./components/Layout"
-import LoginPage from "./pages/LoginPage"
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import LoginPage from "./pages/LoginPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
 
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path='/' element={< Layout />} >
           <Route path='login' element={< LoginPage />} />
+          <Route path="profile" element={< ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

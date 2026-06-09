@@ -1,11 +1,20 @@
 import {useState} from 'react'
+import { useNavigate } from 'react-router';
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleSubmit() {
+  let navigate = useNavigate();
+
+  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     // To be implemented
+    e.preventDefault();
+    setUsername("");
+    setPassword("");
+
+    console.log("Logged in! Navigating to Profile page...");
+    navigate('/profile');
   };
 
   return (
