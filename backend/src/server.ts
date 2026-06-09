@@ -73,7 +73,7 @@ app.post("/create-user", async (req, res) => {
   // Will take username and rawPassword from body
 
   // First we need to add the hashed password to the Auth table
-  const result1 = await pgClient.query('INSERT INTO "Auth"(hashedPassword) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
+  const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
   console.log(result1.rows[0])
 
   // Grab the id of the newly created Auth row
