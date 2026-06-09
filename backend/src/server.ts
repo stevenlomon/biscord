@@ -1,5 +1,5 @@
 import express from "express";
-import {Request, Response, NextFunction} from "express";
+import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
@@ -18,7 +18,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Helper functions
-const connectToPg = async() => {
+const connectToPg = async () => {
   await pgClient.connect()
 }
 
@@ -27,7 +27,7 @@ const getCurrentUser = async (session: any) => {
   // Using a prepared statement!
   const query = {
     name: 'fetch-current-user',
-    text: 'SELECT * FROM user WHERE id = $1',
+    text: 'SELECT * FROM "User" WHERE id = $1',
     values: [session.user_id],
   }
   const res = await pgClient.query(query)
@@ -38,7 +38,7 @@ const getCurrentUser = async (session: any) => {
 }
 
 app.use(express.json());
-app.use('/static', express.static('public'));
+// app.use('/static', express.static('public'));
 app.use(session({
   name: "biscord-cookie",
   secret: "super secret!",
@@ -61,7 +61,7 @@ app.use(session({
 // That.. is not gonna work haha
 
 app.get("/", (req, res) => {
-  res.send(":)");
+  res.send("hi :)");
 });
 
 // USER ENDPOINTS
@@ -71,8 +71,7 @@ app.post("/create-user", async (req, res) => {
   const raw_password = req.body.password;
   const hashed_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
   // Will take username and raw_password from body
-  
-  // TODO: If successful, add User to db
+
   // First we need to add the hashed password to the Auth table
   const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashed_password]); // Using parameterized queries. And "Auth" needs to be in double quotes!
   console.log(result1.rows[0])
@@ -104,21 +103,55 @@ app.get("/users", async (req, res) => {
 
 // AUTH ENDPOINTS
 app.post("/login", async (req, res) => {
-  // This is ugly, I *know* haha
-  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
-  const users = await response.json();
-  
-  for (let user of users) { // Intuition just whispered.. we can use `.in()` here?
-    if (req.body.username === user.username && await bcrypt.compare(req.body.password, user.encrypted_pw)) {
-      (req.session as any).user_id = user.id;
-      return res.json({
-        "success": "ok"
-      });
-    } else {
-      return res.status(401).json({
-        "success": "not ok"
-      });
-    }
+  // Fetch the user that matches the login request body
+  // const query = {
+  //   name: 'fetch-login-match',
+  //   text: 'SELECT * FROM user INNER JOIN auth ON user.auth_id = auth.id WHERE user.username = $1 AND auth.hashed_password = $2',
+  //   values: [req.body.username, ],
+  // }
+  // const resp = await pgClient.query(query)
+  // We can't do it like this! Cuz we can't compare like that, we need to compare with `bcrypt.compare(req.body.password, user.encrypted_pw)`
+  // So the first fetch is a simple fetch from the User table on username only! And from that either single match or several matches we compare the hashed pw. Right
+  // The db question here is... does our User table allow duplicate usernames? Right now I believe we do? 
+  // We do. That needs to change. That should be rejected and frontend should display "Username already taken". The db should definitely have username be Unique
+  const query1 = {
+    name: 'fetch-username-match', // So match, not matches
+    text: 'SELECT * FROM "User" WHERE username = $1', // This needs to be "User", not `user`
+    values: [req.body.username],
+  }
+  const resp1 = await pgClient.query(query1);
+  const user = resp1.rows[0];
+
+  console.log(`Login username match: ${user}`); // Right. So if no username match, this is undefined
+  // Meaning that we can throw early here if there is no match!
+  if (!user) { // This works 🎉
+    return res.status(401).json({
+      "success": "not ok"
+    });
+  }
+
+  // NOW that we have a username match, we check if the password match
+  // And I'm just now realizing this requries a second db fetch. We need to grab the hashed password from the Auth table. Right.
+
+  const query2 = {
+    name: 'fetch-hashed-password',
+    text: 'SELECT hashed_password FROM "Auth" WHERE id = $1',
+    values: [user.auth_id] // This works haha! And it should be auth_id, not id
+  }
+
+  const resp2 = await pgClient.query(query2);
+  const hashed_pw = resp2.rows[0].hashed_password;
+  console.log(`Hashed password: ${hashed_pw}`);
+
+  if (await bcrypt.compare(req.body.password, hashed_pw)) {
+    (req.session as any).user_id = user.id;
+    return res.json({
+      "success": "ok"
+    });
+  } else {
+    return res.status(401).json({
+      "success": "not ok"
+    });
   }
 
   // res.send(":)");
@@ -139,7 +172,7 @@ app.get("/profile", requireAuth, async (req, res) => {
 
 app.patch("/edit-bio", requireAuth, async (req, res) => {
   const current_user = await getCurrentUser(req.session);
-  
+
   // Here's where we would change the bio for the user in db
 
   res.json({
