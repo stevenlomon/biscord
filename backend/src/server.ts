@@ -220,6 +220,21 @@ app.patch("/bio", requireAuth, async (req, res) => {
     });
 });
 
+app.post("/logout", requireAuth, async (req, res) => {
+  // "The only other thing we need to do here is to set Online Status to NULL in the db"
+  // Order matters here haha! Update the logged in user, THEN end the session
+  const current_user = await getCurrentUser(req.session);
+  const resp = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [null, current_user.id]);
+  console.log(`Set login status result: ${resp.rows[0]}`);
+
+  // Super simple logout in terms of session and cookies for now
+  (req.session as any).user_id = null; // End the session
+
+  res.json({
+      "success": "ok",
+  });
+});
+
 
 // START WEB SERVER
 let port = process.env.WEB_SERVER_PORT || 3000;
