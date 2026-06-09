@@ -144,7 +144,11 @@ app.post("/login", async (req, res) => {
   console.log(`Hashed password: ${hashed_pw}`);
 
   if (await bcrypt.compare(req.body.password, hashed_pw)) {
-    (req.session as any).user_id = user.id;
+    (req.session as any).user_id = user.id; // Initiate the session
+    // Here we also need to set their online status to Online! Meaning a third db query haha!
+    const resp3 = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);
+    console.log(`Set login status result: ${resp3.rows[0]}`);
+
     return res.json({
       "success": "ok"
     });
@@ -170,7 +174,13 @@ app.get("/profile", requireAuth, async (req, res) => {
   });
 });
 
-app.patch("/edit-bio", requireAuth, async (req, res) => {
+app.patch("/login-status", requireAuth, async (req, res) => {
+  const current_user = await getCurrentUser(req.session); // 
+
+  // To be implemented
+});
+
+app.patch("/bio", requireAuth, async (req, res) => {
   const current_user = await getCurrentUser(req.session);
 
   // Here's where we would change the bio for the user in db. Let's return to it and implement it
