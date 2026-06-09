@@ -10,7 +10,7 @@ let app = express();
 
 // Middleware
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  if ((req.session as any).user_id) {
+  if ((req.session as any).userId) {
     return next();
   } else {
     res.send("Please log in!")
@@ -23,18 +23,18 @@ const connectToPg = async () => {
 }
 
 const getCurrentUser = async (session: any) => {
-  // Find the user in Users using only session.user_id
+  // Find the user in Users using only session.userId
   // Using a prepared statement!
   const query = {
     name: 'fetch-current-user',
     text: 'SELECT * FROM "User" WHERE id = $1',
-    values: [session.user_id],
+    values: [session.userId],
   }
   const res = await pgClient.query(query)
-  const current_user = res.rows[0];
+  const currentUser = res.rows[0];
 
-  console.log(`Current user: ${current_user.id} - ${current_user.username}`);
-  return current_user;
+  console.log(`Current user: ${currentUser.id} - ${currentUser.username}`);
+  return currentUser;
 }
 
 app.use(express.json());
@@ -66,14 +66,14 @@ app.get("/", (req, res) => {
 
 // USER ENDPOINTS
 app.post("/create-user", async (req, res) => {
-  const user_id = crypto.randomUUID();
+  const userId = crypto.randomUUID();
   // const joined_at = new Date().toLocaleString(); // I'll refine this later. Nope, our Postgre DB can handle this one!
-  const raw_password = req.body.password;
-  const hashed_password = await bcrypt.hash(raw_password, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
-  // Will take username and raw_password from body
+  const rawPassword = req.body.password;
+  const hashedPassword = await bcrypt.hash(rawPassword, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
+  // Will take username and rawPassword from body
 
   // First we need to add the hashed password to the Auth table
-  const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashed_password]); // Using parameterized queries. And "Auth" needs to be in double quotes!
+  const result1 = await pgClient.query('INSERT INTO "Auth"(hashedPassword) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
   console.log(result1.rows[0])
 
   // Grab the id of the newly created Auth row
@@ -81,15 +81,15 @@ app.post("/create-user", async (req, res) => {
 
   // Second query for the actual User row
   // We handle id, username and authId server-side, our Postgre DB handles created_at and sets bio, online_status_id and profile_pic_url as a default NULL!
-  const result2 = await pgClient.query('INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *', [user_id, req.body.username, AuthId]);
+  const result2 = await pgClient.query('INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *', [userId, req.body.username, AuthId]);
   console.log(result2.rows[0])
 
   res.status(201).json({
     "success": "ok",
     "data": {
-      "id": user_id,
+      "id": userId,
       "username": req.body.username,
-      "hashed_pw": hashed_password,
+      "hashed_pw": hashedPassword,
       // Might add more
     }
   });
@@ -106,7 +106,7 @@ app.post("/login", async (req, res) => {
   // Fetch the user that matches the login request body
   // const query = {
   //   name: 'fetch-login-match',
-  //   text: 'SELECT * FROM user INNER JOIN auth ON user.auth_id = auth.id WHERE user.username = $1 AND auth.hashed_password = $2',
+  //   text: 'SELECT * FROM user INNER JOIN auth ON user.auth_id = auth.id WHERE user.username = $1 AND auth.hashedPassword = $2',
   //   values: [req.body.username, ],
   // }
   // const resp = await pgClient.query(query)
@@ -135,16 +135,16 @@ app.post("/login", async (req, res) => {
 
   const query2 = {
     name: 'fetch-hashed-password',
-    text: 'SELECT hashed_password FROM "Auth" WHERE id = $1',
+    text: 'SELECT hashedPassword FROM "Auth" WHERE id = $1',
     values: [user.auth_id] // This works haha! And it should be auth_id, not id
   }
 
   const resp2 = await pgClient.query(query2);
-  const hashed_pw = resp2.rows[0].hashed_password;
-  console.log(`Hashed password: ${hashed_pw}`);
+  const hashedPassword = resp2.rows[0].hashedPassword;
+  console.log(`Hashed password: ${hashedPassword}`);
 
-  if (await bcrypt.compare(req.body.password, hashed_pw)) {
-    (req.session as any).user_id = user.id; // Initiate the session
+  if (await bcrypt.compare(req.body.password, hashedPassword)) {
+    (req.session as any).userId = user.id; // Initiate the session
     // Here we also need to set their online status to Online! Meaning a third db query haha!
     const resp3 = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);
     console.log(`Set login status result: ${resp3.rows[0]}`);
@@ -163,32 +163,32 @@ app.post("/login", async (req, res) => {
 
 // LOGGED IN ENDPOINTS
 app.get("/profile", requireAuth, async (req, res) => {
-  const current_user = await getCurrentUser(req.session);
+  const currentUser = await getCurrentUser(req.session);
 
   res.json({
     "data": {
-      "user_id": current_user.id,
-      "username": current_user.username,
-      "bio": current_user.bio
+      "userId": currentUser.id,
+      "username": currentUser.username,
+      "bio": currentUser.bio
     }
   });
 });
 
 app.patch("/login-status", requireAuth, async (req, res) => {
-  const current_user = await getCurrentUser(req.session); // 
+  const currentUser = await getCurrentUser(req.session); // 
 
   // To be implemented
 });
 
 app.patch("/bio", requireAuth, async (req, res) => {
-  const current_user = await getCurrentUser(req.session);
+  const currentUser = await getCurrentUser(req.session);
 
   // Here's where we would change the bio for the user in db. Let's return to it and implement it
-  // console.log(req.body.bio, current_user.id);
+  // console.log(req.body.bio, currentUser.id);
   const query = {
     name: 'update-user-bio',
     text: 'UPDATE "User" SET bio = $1 WHERE id = $2',
-    values: [req.body.bio, current_user.id],
+    values: [req.body.bio, currentUser.id],
   }
   const resp = await pgClient.query(query);
   console.log(`Bio update results: ${resp.rows[0]}`); // This gives undefined!!! Even when there is a succesful update! Really good to know
@@ -198,8 +198,8 @@ app.patch("/bio", requireAuth, async (req, res) => {
   //   res.json({
   //     "success": "ok",
   //     "data": {
-  //       "user_id": current_user.id,
-  //       "username": current_user.username,
+  //       "userId": currentUser.id,
+  //       "username": currentUser.username,
   //       "bio": req.body.bio
   //     }
   //   });
@@ -213,8 +213,8 @@ app.patch("/bio", requireAuth, async (req, res) => {
   res.json({
       "success": "ok",
       "data": {
-        "user_id": current_user.id,
-        "username": current_user.username,
+        "userId": currentUser.id,
+        "username": currentUser.username,
         "bio": req.body.bio
       }
     });
@@ -223,12 +223,12 @@ app.patch("/bio", requireAuth, async (req, res) => {
 app.post("/logout", requireAuth, async (req, res) => {
   // "The only other thing we need to do here is to set Online Status to NULL in the db"
   // Order matters here haha! Update the logged in user, THEN end the session
-  const current_user = await getCurrentUser(req.session);
-  const resp = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [null, current_user.id]);
+  const currentUser = await getCurrentUser(req.session);
+  const resp = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [null, currentUser.id]);
   console.log(`Set login status result: ${resp.rows[0]}`);
 
   // Super simple logout in terms of session and cookies for now
-  (req.session as any).user_id = null; // End the session
+  (req.session as any).userId = null; // End the session
 
   res.json({
       "success": "ok",
