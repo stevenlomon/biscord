@@ -33,7 +33,7 @@ const getCurrentUser = async (session: any) => {
   const res = await pgClient.query(query)
   const current_user = res.rows[0];
 
-  console.log(`Current user: ${current_user}`);
+  console.log(`Current user: ${current_user.id} - ${current_user.username}`);
   return current_user;
 }
 
@@ -122,7 +122,7 @@ app.post("/login", async (req, res) => {
   const resp1 = await pgClient.query(query1);
   const user = resp1.rows[0];
 
-  console.log(`Login username match: ${user}`); // Right. So if no username match, this is undefined
+  console.log(`Login username match: ${user.id}`); // Right. So if no username match, this is undefined
   // Meaning that we can throw early here if there is no match!
   if (!user) { // This works 🎉
     return res.status(401).json({
@@ -173,16 +173,41 @@ app.get("/profile", requireAuth, async (req, res) => {
 app.patch("/edit-bio", requireAuth, async (req, res) => {
   const current_user = await getCurrentUser(req.session);
 
-  // Here's where we would change the bio for the user in db
+  // Here's where we would change the bio for the user in db. Let's return to it and implement it
+  // console.log(req.body.bio, current_user.id);
+  const query = {
+    name: 'update-user-bio',
+    text: 'UPDATE "User" SET bio = $1 WHERE id = $2',
+    values: [req.body.bio, current_user.id],
+  }
+  const resp = await pgClient.query(query);
+  console.log(`Bio update results: ${resp.rows[0]}`); // This gives undefined!!! Even when there is a succesful update! Really good to know
+
+  // So we can't wrap our response like this
+  // if (!resp) {
+  //   res.json({
+  //     "success": "ok",
+  //     "data": {
+  //       "user_id": current_user.id,
+  //       "username": current_user.username,
+  //       "bio": req.body.bio
+  //     }
+  //   });
+  // } else {
+  //   res.status(500).json({
+  //     "success": "not ok",
+  //     "message": "database error"
+  //   })
+  // }
 
   res.json({
-    "success": "ok",
-    "data": {
-      "user_id": current_user.id,
-      "username": current_user.username,
-      "bio": req.body.bio
-    }
-  });
+      "success": "ok",
+      "data": {
+        "user_id": current_user.id,
+        "username": current_user.username,
+        "bio": req.body.bio
+      }
+    });
 });
 
 

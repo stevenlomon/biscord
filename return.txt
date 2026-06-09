@@ -2,3 +2,4 @@ I will return to these when I have a 95% me 5% AI working v1 proof of concept wo
 * verbatimModuleSyntax: true?
 * Why does bcrypt.hash return a Promise??
 * Is User ID generated server side or by the db?
+* Is there a way that we can check for a succesful update like in the /edit-bio endpoint? 
