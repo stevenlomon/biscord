@@ -23,17 +23,17 @@ const connectToPg = async() => {
 }
 
 const getCurrentUser = async (session: any) => {
-  // Find the user in Users using only req.session.user_id
-  const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
-  const users = await response.json();
-
-  let current_user;
-  for (let user of users) {
-    if (user.id === session.user_id) {
-      current_user = user;
-    }
+  // Find the user in Users using only session.user_id
+  // Using a prepared statement!
+  const query = {
+    name: 'fetch-current-user',
+    text: 'SELECT * FROM user WHERE id = $1',
+    values: [session.user_id],
   }
+  const res = await pgClient.query(query)
+  const current_user = res.rows[0];
 
+  console.log(`Current user: ${current_user}`);
   return current_user;
 }
 
