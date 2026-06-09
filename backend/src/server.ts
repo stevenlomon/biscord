@@ -177,7 +177,33 @@ app.get("/profile", requireAuth, async (req, res) => {
 app.patch("/login-status", requireAuth, async (req, res) => {
   const currentUser = await getCurrentUser(req.session); // 
 
-  // To be implemented
+  // console.log(Date.now());
+  // console.log(req.body.for*60*1000);
+  // console.log(Date.now() + req.body.for*60*1000);
+  const query = req.body.status === 1 ? { // If the User sets their online status back to 1 (Online), there won't be a `for` key in the body payload
+    name: 'update-login-status',
+    text: 'UPDATE "User" SET online_status_id = $1 WHERE id = $2',
+    values: [req.body.status, currentUser.id],
+  } : {
+    name: 'update-login-status',
+    text: 'UPDATE "User" SET online_status_id = $1, online_status_until = $2 WHERE id = $3',
+    values: [req.body.status, new Date(Date.now() + req.body.for*60*1000), currentUser.id], // Sticking to Unix time for simplicity. We need to wrap our ms time delta math in new Date to signal it as a Unix offset
+  };
+
+  const resp = await pgClient.query(query);
+  console.log(`Online status update results: ${resp.rows[0]}`);
+
+  res.json({
+    "success": "ok",
+    "data": {
+      "userId": currentUser.id,
+      "username": currentUser.username,
+      "online_status_id": req.body.status,
+      "online_status_until": new Date(Date.now() + req.body.for*60*1000)
+    }
+  });
+
+  // res.send(":)");
 });
 
 app.patch("/bio", requireAuth, async (req, res) => {
@@ -211,13 +237,13 @@ app.patch("/bio", requireAuth, async (req, res) => {
   // }
 
   res.json({
-      "success": "ok",
-      "data": {
-        "userId": currentUser.id,
-        "username": currentUser.username,
-        "bio": req.body.bio
-      }
-    });
+    "success": "ok",
+    "data": {
+      "userId": currentUser.id,
+      "username": currentUser.username,
+      "bio": req.body.bio
+    }
+  });
 });
 
 app.post("/logout", requireAuth, async (req, res) => {
@@ -231,7 +257,7 @@ app.post("/logout", requireAuth, async (req, res) => {
   (req.session as any).userId = null; // End the session
 
   res.json({
-      "success": "ok",
+    "success": "ok",
   });
 });
 
