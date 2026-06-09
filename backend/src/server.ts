@@ -135,12 +135,12 @@ app.post("/login", async (req, res) => {
 
   const query2 = {
     name: 'fetch-hashed-password',
-    text: 'SELECT hashedPassword FROM "Auth" WHERE id = $1',
+    text: 'SELECT hashed_password FROM "Auth" WHERE id = $1',
     values: [user.auth_id] // This works haha! And it should be auth_id, not id
   }
 
   const resp2 = await pgClient.query(query2);
-  const hashedPassword = resp2.rows[0].hashedPassword;
+  const hashedPassword = resp2.rows[0].hashed_password;
   console.log(`Hashed password: ${hashedPassword}`);
 
   if (await bcrypt.compare(req.body.password, hashedPassword)) {
