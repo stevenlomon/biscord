@@ -26,38 +26,38 @@ const RegisterForm = () => {
         {/* Text Input Fields */}
         <div>
           <label className={labelClass}>Email <span className="text-red-500">*</span></label>
-          <input className={inputClass} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className={inputClass} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div>
           <label className={labelClass}>Display Name</label>
-          <input className={inputClass} type="text" value={displayName} onChange={(e) => setdisplayName(e.target.value)} />
+          <input className={inputClass} type="text" required value={displayName} onChange={(e) => setdisplayName(e.target.value)} />
         </div>
 
         <div>
           <label className={labelClass}>Username <span className="text-red-500">*</span></label>
-          <input className={inputClass} type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+          <input className={inputClass} type="text" required value={username} onChange={(e) => setUsername(e.target.value)} />
         </div>
 
         <div>
           <label className={labelClass}>Password <span className="text-red-500">*</span></label>
-          <input className={inputClass} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input className={inputClass} type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
 
         {/* Date of Birth Flex Row */}
         <label className={labelClass}>Date of Birth <span className="text-red-500">*</span></label>
         <div className="flex gap-4">
-          <select className={`${inputClass} cursor-pointer`} value={dateOfBirthMonth || ""} onChange={(e) => setdateOfBirthMonth(Number(e.target.value))}>
+          <select className={`${inputClass} cursor-pointer`} required value={dateOfBirthMonth || ""} onChange={(e) => setdateOfBirthMonth(Number(e.target.value))}>
             <option value="" disabled hidden>Month</option>
             {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
           </select>
 
-          <select className={`${inputClass} cursor-pointer`} value={dateOfBirthDay || ""} onChange={(e) => setdateOfBirthDay(Number(e.target.value))}>
+          <select className={`${inputClass} cursor-pointer`} required value={dateOfBirthDay || ""} onChange={(e) => setdateOfBirthDay(Number(e.target.value))}>
             <option value="" disabled hidden>Days</option>
             {DAYS.map(day => <option key={day}>{day}</option>)}
           </select>
 
-          <select className={`${inputClass} cursor-pointer`} value={dateOfBirthYear || ""} onChange={(e) => setdateOfBirthYear(Number(e.target.value))}>
+          <select className={`${inputClass} cursor-pointer`} required value={dateOfBirthYear || ""} onChange={(e) => setdateOfBirthYear(Number(e.target.value))}>
             <option value="" disabled hidden>Year</option>
             {YEARS.map(year => <option key={year}>{year}</option>)}
           </select>
@@ -73,7 +73,7 @@ const RegisterForm = () => {
           </label>
 
           <label className="flex items-start gap-3 cursor-pointer group">
-            <input className="shrink-0 mt-1 w-6 h-6 rounded accent-[#5865F2] cursor-pointer" type="checkbox" checked={agreement} onChange={(e) => setAgreement(e.target.checked)} />
+            <input className="shrink-0 mt-1 w-6 h-6 rounded accent-[#5865F2] cursor-pointer" type="checkbox" required checked={agreement} onChange={(e) => setAgreement(e.target.checked)} />
             <span className="text-xs text-[#B5BAC1] leading-relaxed group-hover:text-[#DBDEE1] transition-colors">
               We currently have no Terms of Service or Privacy Policy but please check this box anyway
             </span>
