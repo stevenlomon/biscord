@@ -33,17 +33,17 @@ const RegisterForm = () => {
 
         <label>Date of Birth <span>*</span></label>
         <select value={dateOfBirthMonth || ""} onChange={(e) => setdateOfBirthMonth(Number(e.target.value))}>
-          <option value="" disabled>Month</option>
+          <option value="" disabled hidden>Month</option>
           {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
         </select>
 
         <select value={dateOfBirthDay || ""} onChange={(e) => setdateOfBirthDay(Number(e.target.value))}>
-          <option value="" disabled>Days</option>
+          <option value="" disabled hidden>Days</option>
           {DAYS.map(day => <option key={day}>{day}</option>)}
         </select>
 
         <select value={dateOfBirthYear || ""} onChange={(e) => setdateOfBirthYear(Number(e.target.value))}>
-          <option value="" disabled>Year</option>
+          <option value="" disabled hidden>Year</option>
           {YEARS.map(year => <option key={year}>{year}</option>)}
         </select>
 
