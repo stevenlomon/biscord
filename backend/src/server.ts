@@ -85,9 +85,9 @@ app.post("/create-user", async (req, res) => {
   
   // Conditional db insert based on display name presence
   let query = displayName !== "" 
-    ? 'INSERT INTO "User"(id, username, auth_id, display_name) VALUES($1, $2, $3, $4) RETURNING *' 
-    : 'INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *'
-  let userValues = displayName !== "" ? [userId, req.body.username, AuthId, displayName] : [userId, req.body.username, AuthId]
+    ? 'INSERT INTO "User"(id, username, auth_id, display_name, date_of_birth) VALUES($1, $2, $3, $4, $5) RETURNING *' 
+    : 'INSERT INTO "User"(id, username, auth_id, date_of_birth) VALUES($1, $2, $3, $4) RETURNING *'
+  let userValues = displayName !== "" ? [userId, req.body.username, AuthId, displayName, req.body.dob] : [userId, req.body.username, AuthId, req.body.dob]
 
   const result2 = await pgClient.query(query, userValues);
   console.log(result2.rows[0])
