@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from 'react-router-dom';
 import { MONTHS, DAYS, YEARS } from "../utils";
 
 const RegisterForm = () => {
@@ -12,8 +13,40 @@ const RegisterForm = () => {
   const [marketingConsent, setmarketingConsent] = useState(false);
   const [agreement, setAgreement] = useState(false);
 
-  function handleSubmit() {
-    // To be implemented
+  let navigate = useNavigate();
+
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    // Guard clause: Telling TypeScript that we will not proceed if any value is null
+    if (dateOfBirthYear === null || dateOfBirthMonth === null || dateOfBirthDay === null) {
+      console.error("Please complete the date of birth field.");
+      return;
+    }
+
+    try {
+      const response = await fetch("localhost:3007/create-user", {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email: email,
+          username: username,
+          password: password, // Is hashed on the server
+          dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
+        })
+      });
+      const data = await response.json();
+
+      if (data?.success === "ok") {
+        console.log(`User created! data: ${data}`);
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error(`Error: ${err}`);
+    }
   }
 
   // Reusable label class to keep the code clean
@@ -31,6 +64,7 @@ const RegisterForm = () => {
 
         <div>
           <label className={labelClass}>Display Name</label>
+          {/* If no display name is entered, they will see their username when landing on the Profile page */}
           <input className={inputClass} type="text" required value={displayName} onChange={(e) => setdisplayName(e.target.value)} />
         </div>
 
@@ -49,7 +83,8 @@ const RegisterForm = () => {
         <div className="flex gap-4">
           <select className={`${inputClass} cursor-pointer`} required value={dateOfBirthMonth || ""} onChange={(e) => setdateOfBirthMonth(Number(e.target.value))}>
             <option value="" disabled hidden>Month</option>
-            {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
+            {/* Index adjusted here from `index + 1` to just `index`, now going from 0 to 11 to be in alignment with `new Date()` */}
+            {MONTHS.map((month, index) => <option key={month} value={index}>{month}</option>)}
           </select>
 
           <select className={`${inputClass} cursor-pointer`} required value={dateOfBirthDay || ""} onChange={(e) => setdateOfBirthDay(Number(e.target.value))}>
