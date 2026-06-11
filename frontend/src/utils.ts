@@ -9,6 +9,11 @@ export const MONTHS = ["January", "February", "March", "April", "May", "June", "
 // };
 
 const generateYears = (start = 1926, end = 2026) => 
-  Array.from({ length: end - start + 1 }, (_, i) => i + start).reverse();;
+  Array.from({ length: end - start + 1 }, (_, i) => i + start).reverse();
 
 export const YEARS = generateYears();
+
+const generateDays = (start = 1, end = 31) => 
+  Array.from({ length: end - start + 1 }, (_, i) => i + start);
+
+export const DAYS = generateDays();
