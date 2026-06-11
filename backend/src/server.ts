@@ -65,9 +65,13 @@ app.get("/", (req, res) => {
 app.post("/create-user", async (req, res) => {
   const userId = crypto.randomUUID();
   // const joined_at = new Date().toLocaleString(); // I'll refine this later. Nope, our Postgre DB can handle this one!
+
+  // Will take username and rawPassword from body
   const rawPassword = req.body.password;
   const hashedPassword = await bcrypt.hash(rawPassword, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
-  // Will take username and rawPassword from body
+
+  // Added: conditional display name
+  let displayName = req.body.displayName && req.body.displayName !== "" ? req.body.displayName : "";
 
   // First we need to add the hashed password to the Auth table
   const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
@@ -78,7 +82,14 @@ app.post("/create-user", async (req, res) => {
 
   // Second query for the actual User row
   // We handle id, username and authId server-side, our Postgre DB handles created_at and sets bio, online_status_id and profile_pic_url as a default NULL!
-  const result2 = await pgClient.query('INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *', [userId, req.body.username, AuthId]);
+  
+  // Conditional db insert based on display name presence
+  let query = displayName !== "" 
+    ? 'INSERT INTO "User"(id, username, auth_id, display_name) VALUES($1, $2, $3, $4) RETURNING *' 
+    : 'INSERT INTO "User"(id, username, auth_id) VALUES($1, $2, $3) RETURNING *'
+  let userValues = displayName !== "" ? [userId, req.body.username, AuthId, displayName] : [userId, req.body.username, AuthId]
+
+  const result2 = await pgClient.query(query, userValues);
   console.log(result2.rows[0])
 
   res.status(201).json({

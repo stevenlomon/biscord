@@ -25,18 +25,27 @@ const RegisterForm = () => {
     }
 
     try {
+      // Conditional payload based on if we are given a display name or not
+      let payload = displayName === "" ? {
+        email: email,
+        username: username,
+        password: password, // Is hashed on the server
+        dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
+      } : {
+        email: email,
+        username: username,
+        password: password,
+        dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
+        displayName: displayName,
+      }
+
       const response = await fetch("http://localhost:3007/create-user", { // Don't forget `http://`
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         method: "POST",
-        body: JSON.stringify({
-          email: email,
-          username: username,
-          password: password, // Is hashed on the server
-          dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
-        }),
+        body: JSON.stringify(payload),
         credentials: "include", // For session cookies!
       });
       const data = await response.json();
@@ -66,7 +75,7 @@ const RegisterForm = () => {
         <div>
           <label className={labelClass}>Display Name</label>
           {/* If no display name is entered, they will see their username when landing on the Profile page */}
-          <input className={inputClass} type="text" required value={displayName} onChange={(e) => setdisplayName(e.target.value)} />
+          <input className={inputClass} type="text" value={displayName} onChange={(e) => setdisplayName(e.target.value)} />
         </div>
 
         <div>
