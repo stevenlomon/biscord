@@ -3,12 +3,13 @@ import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import cors from "cors";
 import pgClient from "./db";
 
 dotenv.config();
 let app = express();
 
-// Middleware
+// Custom Middleware
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if ((req.session as any).userId) {
     return next();
@@ -37,6 +38,7 @@ const getCurrentUser = async (session: any) => {
   return currentUser;
 }
 
+// MIDDLEWARE
 app.use(express.json());
 // app.use('/static', express.static('public'));
 app.use(session({
@@ -49,16 +51,11 @@ app.use(session({
     "maxAge": 5 * 60 * 1000
   }
 }));
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true, // Allows the session cookie to be sent back and forth
+}));
 
-// // This can surely be done in a more elegant way
-// const fetchUsers = async () => {
-//   const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
-//   const data = await response.json();
-//   return data;
-// }
-// const USERS = fetchUsers();
-// console.log(USERS);
-// That.. is not gonna work haha
 
 app.get("/", (req, res) => {
   res.send("hi :)");

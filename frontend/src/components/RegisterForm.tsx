@@ -25,7 +25,7 @@ const RegisterForm = () => {
     }
 
     try {
-      const response = await fetch("localhost:3007/create-user", {
+      const response = await fetch("http://localhost:3007/create-user", { // Don't forget `http://`
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -36,7 +36,8 @@ const RegisterForm = () => {
           username: username,
           password: password, // Is hashed on the server
           dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
-        })
+        }),
+        credentials: "include", // For session cookies!
       });
       const data = await response.json();
 
