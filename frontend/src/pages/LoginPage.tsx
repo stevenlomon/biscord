@@ -1,6 +1,13 @@
 import LoginForm from "../components/LoginForm"
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
+  // const navigate = useNavigate();
+
+  // function handleRegister() {
+  //   navigate('/register');
+  // } None of this is needed when we use Link!
+
   return (
     <div className="bg-[#313338] rounded-[5px] shadow-2xl p-8 flex flex-col md:flex-row gap-8 w-full max-w-[784px]">
 
@@ -15,7 +22,9 @@ const LoginPage = () => {
 
         <div className="mt-4 text-sm">
           <span className="text-[#B5BAC1]">Need an account? </span>
-          <a href="#" className="text-[#00A8FC] hover:underline font-medium">Register</a>
+          {/* <a onClick={handleRegister} className="text-[#00A8FC] hover:underline font-medium">Register</a> */}
+          {/* This under is the proper way to do it! Link replaces the scuffed <a> + onClick + useNavigate combo haha! */}
+          <Link to={'/register'} className="text-[#00A8FC] hover:underline font-medium">Register</Link>
         </div>
       </div>
 
