@@ -5,17 +5,57 @@ const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordInputType, setPasswordInputType] = useState('password');
+  const [error, setError] = useState<string | null>(null); // `error` is either a string ready to be printed to the screen, or `null` if everything is fine
 
   let navigate = useNavigate();
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     // To be implemented
     e.preventDefault();
-    setUsername("");
-    setPassword("");
 
-    console.log("Logged in! Navigating to Profile page...");
-    navigate('/profile');
+    // Make the POST login request in order to check the response from the server
+    try {
+      const response = await fetch("http://localhost:3007/login", {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({
+          username: username,
+          password: password
+        }),
+        credentials: "include", // For session cookies!
+      });
+      console.log("Raw Response Status:", response.status);
+
+      const data = await response.json();
+      console.log("Parsed JSON Data from Server:", data);
+
+      // The response will either have "sucess": "ok" or "sucess": "not ok"
+      if (data?.success === "ok") {
+        console.log(`User logged in! data: ${data}`);
+        navigate('/profile');
+      } else if (data?.success === "not ok") { // Let's just check it explicitly since we know the binary outcomes
+        // Here we need to re-render the page and display "Wrong username or password. Try again" 
+        // Is it best practice to wipe or not wipe upon a failed login attempt?
+        // setUsername("");
+        // setPassword("");
+        // The real login page does *not* wipe these so let's model that
+        // Hmmmm. I'm reasoning that in this scenario here I get the choice to either use this else if or "lump it in" with the catch all. Let's use this else if
+        console.error("Wrong username or password. Please try again.");
+        setError("Wrong username or password. Please try again."); // With our type defintion above, we can just set the string immediately! No object needed!
+      }
+    } catch (err) {
+      console.error(`Network error: ${err}`);
+
+      // Safely check if the unknown `err` is a standard Error object
+      if (err instanceof Error) {
+        setError(err.message); // If it is, extract the message
+      } else { 
+        setError("An unexpected network error occurred."); // If it isn't, set it as a default fallback string
+      }
+    };
   };
 
   function togglePasswordVisibility() {
