@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import cors from "cors";
-import pgClient from "./db";
+import pool from "./db";
 
 dotenv.config();
 let app = express();
@@ -19,9 +19,9 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Helper functions
-const connectToPg = async () => {
-  await pgClient.connect()
-}
+// const connectToPg = async () => {
+//   await pgClient.connect()
+// } Not needed if we use Pool!
 
 const getCurrentUser = async (session: any) => {
   // Find the user in Users using only session.userId
@@ -31,7 +31,7 @@ const getCurrentUser = async (session: any) => {
     text: 'SELECT * FROM "User" WHERE id = $1',
     values: [session.userId],
   }
-  const res = await pgClient.query(query)
+  const res = await pool.query(query)
   const currentUser = res.rows[0];
 
   console.log(`Current user: ${currentUser.id} - ${currentUser.username}`);
@@ -74,7 +74,7 @@ app.post("/create-user", async (req, res) => {
   let displayName = req.body.displayName && req.body.displayName !== "" ? req.body.displayName : "";
 
   // First we need to add the hashed password to the Auth table
-  const result1 = await pgClient.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
+  const result1 = await pool.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
   console.log(result1.rows[0])
 
   // Grab the id of the newly created Auth row
@@ -89,7 +89,7 @@ app.post("/create-user", async (req, res) => {
     : 'INSERT INTO "User"(id, username, auth_id, date_of_birth) VALUES($1, $2, $3, $4) RETURNING *'
   let userValues = displayName !== "" ? [userId, req.body.username, AuthId, displayName, req.body.dob] : [userId, req.body.username, AuthId, req.body.dob]
 
-  const result2 = await pgClient.query(query, userValues);
+  const result2 = await pool.query(query, userValues);
   console.log(result2.rows[0])
 
   res.status(201).json({
@@ -117,7 +117,7 @@ app.post("/login", async (req, res) => {
   //   text: 'SELECT * FROM user INNER JOIN auth ON user.auth_id = auth.id WHERE user.username = $1 AND auth.hashedPassword = $2',
   //   values: [req.body.username, ],
   // }
-  // const resp = await pgClient.query(query)
+  // const resp = await pool.query(query)
   // We can't do it like this! Cuz we can't compare like that, we need to compare with `bcrypt.compare(req.body.password, user.encrypted_pw)`
   // So the first fetch is a simple fetch from the User table on username only! And from that either single match or several matches we compare the hashed pw. Right
   // The db question here is... does our User table allow duplicate usernames? Right now I believe we do? 
@@ -127,7 +127,7 @@ app.post("/login", async (req, res) => {
     text: 'SELECT * FROM "User" WHERE username = $1', // This needs to be "User", not `user`
     values: [req.body.username],
   }
-  const resp1 = await pgClient.query(query1);
+  const resp1 = await pool.query(query1);
   const user = resp1.rows[0];
 
   console.log(`Login username match: ${user.id}`); // Right. So if no username match, this is undefined
@@ -147,14 +147,14 @@ app.post("/login", async (req, res) => {
     values: [user.auth_id] // This works haha! And it should be auth_id, not id
   }
 
-  const resp2 = await pgClient.query(query2);
+  const resp2 = await pool.query(query2);
   const hashedPassword = resp2.rows[0].hashed_password;
   console.log(`Hashed password: ${hashedPassword}`);
 
   if (await bcrypt.compare(req.body.password, hashedPassword)) {
     (req.session as any).userId = user.id; // Initiate the session
     // Here we also need to set their online status to Online! Meaning a third db query haha!
-    const resp3 = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);
+    const resp3 = await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);
     console.log(`Set login status result: ${resp3.rows[0]}`);
 
     return res.json({
@@ -198,7 +198,7 @@ app.patch("/login-status", requireAuth, async (req, res) => {
     values: [req.body.status, new Date(Date.now() + req.body.for*60*1000), currentUser.id], // Sticking to Unix time for simplicity. We need to wrap our ms time delta math in new Date to signal it as a Unix offset
   };
 
-  const resp = await pgClient.query(query);
+  const resp = await pool.query(query);
   console.log(`Online status update results: ${resp.rows[0]}`);
 
   res.json({
@@ -224,7 +224,7 @@ app.patch("/bio", requireAuth, async (req, res) => {
     text: 'UPDATE "User" SET bio = $1 WHERE id = $2',
     values: [req.body.bio, currentUser.id],
   }
-  const resp = await pgClient.query(query);
+  const resp = await pool.query(query);
   console.log(`Bio update results: ${resp.rows[0]}`); // This gives undefined!!! Even when there is a succesful update! Really good to know
 
   // So we can't wrap our response like this
@@ -258,7 +258,7 @@ app.post("/logout", requireAuth, async (req, res) => {
   // "The only other thing we need to do here is to set Online Status to NULL in the db"
   // Order matters here haha! Update the logged in user, THEN end the session
   const currentUser = await getCurrentUser(req.session);
-  const resp = await pgClient.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [null, currentUser.id]);
+  const resp = await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [null, currentUser.id]);
   console.log(`Set login status result: ${resp.rows[0]}`);
 
   // Super simple logout in terms of session and cookies for now
@@ -274,8 +274,8 @@ app.post("/logout", requireAuth, async (req, res) => {
 let port = process.env.WEB_SERVER_PORT || 3000;
 
 app.listen(port, () => {
-  connectToPg();
+  // connectToPg(); Not needed now since we use Pool!
 
-  console.log(`Connected to PG Client`)
+  console.log(`Connected to PG Pool`)
   console.log(`Web server started and listening at port ${port}`);
 });
