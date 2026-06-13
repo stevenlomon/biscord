@@ -34,6 +34,9 @@ const LoginForm = () => {
 
       // The response will either have "sucess": "ok" or "sucess": "not ok"
       if (data?.success === "ok") {
+        // Clear input upon succesful log in!
+        setUsername("");
+        setPassword("");
         console.log(`User logged in! data: ${data}`);
         navigate('/profile');
       } else if (data?.success === "not ok") { // Let's just check it explicitly since we know the binary outcomes
