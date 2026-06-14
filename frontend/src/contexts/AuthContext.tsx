@@ -1,5 +1,12 @@
 import { useState, createContext, useContext } from "react";
 
+interface User {
+  id: string;
+  username: string;
+  displayName: string | null; // We want this as `string | null` rather than `displayName?: string;` to match the bio, keep them normalized. And it will require some changes in both frontend and backend. We don't want two ways of representing "no data" ("" vs null) for strings
+  bio: string | null;
+}
+
 const AuthContext = createContext(null);
 
 export const useAuth = () => {
