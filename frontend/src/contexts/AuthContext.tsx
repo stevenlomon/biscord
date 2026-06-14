@@ -7,7 +7,13 @@ interface User {
   bio: string | null;
 }
 
-const AuthContext = createContext(null);
+// Defining the shape of the AuthContext
+interface AuthContextType {
+  currentUser: User | null;
+  setCurrentUser: React.Dispatch< React.SetStateAction<User | null> >;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
