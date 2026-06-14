@@ -70,8 +70,10 @@ app.post("/create-user", async (req, res) => {
   const rawPassword = req.body.password;
   const hashedPassword = await bcrypt.hash(rawPassword, 10); // I know from earlier Python that 10 is a reasonable standard for Salt Rounds. No AI needed! :))
 
-  // Added: conditional display name
-  let displayName = req.body.displayName && req.body.displayName !== "" ? req.body.displayName : "";
+  // Normalize: If displayName empty or missing, it's strictly null
+  const displayName = req.body.displayName && req.body.displayName.trim() !== ""
+    ? req.body.displayName
+    : null;
 
   // First we need to add the hashed password to the Auth table
   const result1 = await pool.query('INSERT INTO "Auth"(hashed_password) VALUES($1) RETURNING *', [hashedPassword]); // Using parameterized queries. And "Auth" needs to be in double quotes!
@@ -82,14 +84,12 @@ app.post("/create-user", async (req, res) => {
 
   // Second query for the actual User row
   // We handle id, username and authId server-side, our Postgre DB handles created_at and sets bio, online_status_id and profile_pic_url as a default NULL!
-  
-  // Conditional db insert based on display name presence
-  let query = displayName !== "" 
-    ? 'INSERT INTO "User"(id, username, auth_id, display_name, date_of_birth) VALUES($1, $2, $3, $4, $5) RETURNING *' 
-    : 'INSERT INTO "User"(id, username, auth_id, date_of_birth) VALUES($1, $2, $3, $4) RETURNING *'
-  let userValues = displayName !== "" ? [userId, req.body.username, AuthId, displayName, req.body.dob] : [userId, req.body.username, AuthId, req.body.dob]
 
-  const result2 = await pool.query(query, userValues);
+  // No more conditional db insert needed thanks to the normalization! We use displayName whether it's a valid value or null
+  const result2 = await pool.query(
+    'INSERT INTO "User"(id, username, auth_id, display_name, date_of_birth) VALUES($1, $2, $3, $4, $5) RETURNING *',
+    [userId, req.body.username, AuthId, displayName, req.body.dob]
+  );
   console.log(result2.rows[0])
 
   res.status(201).json({
@@ -195,7 +195,7 @@ app.patch("/login-status", requireAuth, async (req, res) => {
   } : {
     name: 'update-login-status',
     text: 'UPDATE "User" SET online_status_id = $1, online_status_until = $2 WHERE id = $3',
-    values: [req.body.status, new Date(Date.now() + req.body.for*60*1000), currentUser.id], // Sticking to Unix time for simplicity. We need to wrap our ms time delta math in new Date to signal it as a Unix offset
+    values: [req.body.status, new Date(Date.now() + req.body.for * 60 * 1000), currentUser.id], // Sticking to Unix time for simplicity. We need to wrap our ms time delta math in new Date to signal it as a Unix offset
   };
 
   const resp = await pool.query(query);
@@ -207,7 +207,7 @@ app.patch("/login-status", requireAuth, async (req, res) => {
       "userId": currentUser.id,
       "username": currentUser.username,
       "online_status_id": req.body.status,
-      "online_status_until": new Date(Date.now() + req.body.for*60*1000)
+      "online_status_until": new Date(Date.now() + req.body.for * 60 * 1000)
     }
   });
 
