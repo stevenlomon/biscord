@@ -25,27 +25,20 @@ const RegisterForm = () => {
     }
 
     try {
-      // Conditional payload based on if we are given a display name or not
-      let payload = displayName === "" ? {
-        email: email,
-        username: username,
-        password: password, // Is hashed on the server
-        dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
-      } : {
-        email: email,
-        username: username,
-        password: password,
-        dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
-        displayName: displayName,
-      }
-
       const response = await fetch("http://localhost:3007/create-user", { // Don't forget `http://`
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          email: email,
+          username: username,
+          password: password,
+          dob: new Date(dateOfBirthYear, dateOfBirthMonth, dateOfBirthDay),
+          // Now using short-circuit intervention! "If we have a valid value for displayName from the frontend, use it. Else, use the null fallback". No ternary conditional payload needed! This will now match the `string | null` that bio gets from the backend
+          displayName: displayName.trim() || null,
+        }),
         credentials: "include", // For session cookies!
       });
       const data = await response.json();
