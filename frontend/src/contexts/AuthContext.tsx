@@ -23,8 +23,8 @@ export const useAuth = () => {
   return context;
 }
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null); // null for now
+export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // null for now
 
   const value = {
     currentUser, setCurrentUser
