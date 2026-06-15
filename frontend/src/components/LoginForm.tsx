@@ -77,8 +77,8 @@ const LoginForm = () => {
   // This will fire every time currentUser physically changes in React's memory
   useEffect(() => {
     if (!currentUser) return;
-    
-    console.log("React has successfully updated the currentUser state to:", currentUser);
+
+    console.log("From LoginForm.tsx: React has successfully updated the currentUser state to:", currentUser);
   }, [currentUser]);
 
   function togglePasswordVisibility() {

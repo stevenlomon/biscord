@@ -1,6 +1,9 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const ProfilePage = () => {
+  const { currentUser, setCurrentUser } = useAuth();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -16,6 +19,7 @@ const ProfilePage = () => {
 
       if (response.ok) {
         console.log("Logging user out...")
+        setCurrentUser(null); // Set currentUser back to null!
         navigate('/login');
       } else {
         console.error("Logout failed on the server.");
@@ -24,6 +28,13 @@ const ProfilePage = () => {
       console.error("Network error during logout:", err);
     }
   };
+
+  // Same useEffect used in LoginForm.tsx
+  useEffect(() => {
+      if (!currentUser) return;
+      
+      console.log("From ProfilePage.tsx: React has successfully updated the currentUser state to:", currentUser);
+    }, [currentUser]);
 
   return (
     <div>
