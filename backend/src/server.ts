@@ -157,8 +157,15 @@ app.post("/login", async (req, res) => {
     const resp3 = await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);
     console.log(`Set login status result: ${resp3.rows[0]}`);
 
+    // The response is now modified to match the frontend that wants to run setCurrentUser. We have the user!! From query! Use the data haha!
     return res.json({
-      "success": "ok"
+      "success": "ok",
+      "data": { // Perfectly matching the Interface defined in our AuthContext
+        "id": user.id,
+        "username": user.username,
+        "displayName": user.display_name, // Map DB snake_case to frontend camelCase
+        "bio": user.bio,
+      }
     });
   } else {
     return res.status(401).json({
@@ -167,7 +174,7 @@ app.post("/login", async (req, res) => {
   }
 
   // res.send(":)");
-})
+});
 
 // LOGGED IN ENDPOINTS
 app.get("/profile", requireAuth, async (req, res) => {

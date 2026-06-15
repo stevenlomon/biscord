@@ -1,11 +1,13 @@
-import {useState} from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordInputType, setPasswordInputType] = useState('password');
   const [error, setError] = useState<string | null>(null); // `error` is either a string ready to be printed to the screen, or `null` if everything is fine
+  const {currentUser, setCurrentUser} = useAuth(); // currentUser is currently only used in a console log but it's a useful one haha!
 
   let navigate = useNavigate();
 
@@ -38,6 +40,17 @@ const LoginForm = () => {
         setUsername("");
         setPassword("");
         console.log(`User logged in! data: ${data}`);
+        
+        // Here we set the current user. "Do we need a second fetch request?" No! Delegate the task of extracting everything that our AuthContext Interface expects to the server!! Meaning: modify the `/login` endpoint response!
+        setCurrentUser({
+          // All of our user data is now under the key `data` so yes, we get `data.data` haha
+          id: data.data.id,
+          username: data.data.username,
+          displayName: data.data.displayName,
+          bio: data.data.bio
+        });
+        // console.log(`Current user set! data: ${currentUser}`); // This won't work due to how React's internal clock works haha
+
         navigate('/profile');
       } else if (data?.success === "not ok") { // Let's just check it explicitly since we know the binary outcomes
         // Here we need to re-render the page and display "Wrong username or password. Try again" 
@@ -60,6 +73,13 @@ const LoginForm = () => {
       }
     };
   };
+
+  // This will fire every time currentUser physically changes in React's memory
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    console.log("React has successfully updated the currentUser state to:", currentUser);
+  }, [currentUser]);
 
   function togglePasswordVisibility() {
     passwordInputType === 'password' ? setPasswordInputType('text') : setPasswordInputType('password');
