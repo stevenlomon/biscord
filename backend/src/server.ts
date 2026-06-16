@@ -180,6 +180,13 @@ app.post("/login", async (req, res) => {
   // res.send(":)");
 });
 
+app.get("/me", async (req, res) => {
+  // Guard clause: check if the session cookie exists and has a valid userId
+  if (!(req.session && (req.session as any).userId)) {
+    return res.status(401).json({"success": "not ok"}); // No cookie, no entry
+  }
+});
+
 // LOGGED IN ENDPOINTS
 app.get("/profile", requireAuth, async (req, res) => {
   const currentUser = await getCurrentUser(req.session);
