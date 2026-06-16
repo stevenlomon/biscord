@@ -162,9 +162,13 @@ app.post("/login", async (req, res) => {
       "success": "ok",
       "data": { // Perfectly matching the Interface defined in our AuthContext
         "id": user.id,
+        "createdAt": user.created_at,
         "username": user.username,
         "displayName": user.display_name, // Map DB snake_case to frontend camelCase
         "bio": user.bio,
+        "profilePicURL": user.profile_pic_url,
+        "onlineStatusId": user.online_status_id,
+        "onlineStatusUntil": user.online_status_until,
       }
     });
   } else {

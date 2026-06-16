@@ -42,8 +42,11 @@ const ProfilePage = () => {
       {/* Will be dynamically rendered with display name / username, online status, bio etc etc etc */}
       {/* But that's when we have Log in Context working so that we have a global state for the currently logged in user */}
       {/* For now, let's just make sure log out works */}
-      {/* Will be expanded upon with a "Logging you out..." spinner */}
+      <h2>{currentUser?.displayName || currentUser?.username}</h2>
+      <p>{currentUser?.username}</p>
+      
       <button onClick={handleLogout}>Log out</button>
+      {/* Will be expanded upon with a "Logging you out..." spinner */}
     </div>
   )
 }

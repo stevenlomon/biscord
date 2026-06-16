@@ -1,10 +1,25 @@
 import { useState, createContext, useContext } from "react";
 
+// Single source of truth for the online status mapping
+const OnlineStatusMap = {
+  1: "Online",
+  2: "Idle",
+  3: "Do Not Disturb",
+  4: "Invisible",
+} as const;
+
+// Nifty TypeScript magic: extracts 1 | 2 | 3 | 4 as valid types
+type OnlineStatusId = keyof typeof OnlineStatusMap;
+
 interface User {
   id: string;
+  createdAt: Date; // For the "Member since"
   username: string;
   displayName: string | null; // We want this as `string | null` rather than `displayName?: string;` to match the bio, keep them normalized. And it will require some changes in both frontend and backend. We don't want two ways of representing "no data" ("" vs null) for strings
   bio: string | null;
+  profilePicURL: string | null;
+  onlineStatusId: OnlineStatusId | null; // Will now look for the Id integer, not the string. Future proofing for translations and we eliminate the need for INNER JOINS in the backend. We're letting the database handle the data and React handle the UI (translating via `OnlineStatusMap[currentUser.onlineStatusId]`)
+  onlineStatusUntil: Date | null;
 }
 
 // Defining the shape of the AuthContext
