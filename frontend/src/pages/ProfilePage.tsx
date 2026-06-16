@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, OnlineStatusMap } from "../contexts/AuthContext";
 
 const ProfilePage = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -50,7 +50,7 @@ const ProfilePage = () => {
         day: 'numeric',
         year: 'numeric'
       })}</p>
-      {/* <p>{OnlineStatusMap[currentUser?.onlineStatusId] || "Offline"}</p> */}
+      <p>{currentUser?.onlineStatusId ? OnlineStatusMap[currentUser.onlineStatusId] : "Offline"}</p>
 
       <button onClick={handleLogout}>Log out</button>
       {/* Will be expanded upon with a "Logging you out..." spinner */}

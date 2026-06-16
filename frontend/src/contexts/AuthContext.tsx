@@ -1,7 +1,7 @@
 import { useState, createContext, useContext } from "react";
 
 // Single source of truth for the online status mapping
-const OnlineStatusMap = {
+export const OnlineStatusMap = {
   1: "Online",
   2: "Idle",
   3: "Do Not Disturb",

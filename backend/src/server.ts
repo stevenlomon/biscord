@@ -167,7 +167,7 @@ app.post("/login", async (req, res) => {
         "displayName": user.display_name, // Map DB snake_case to frontend camelCase
         "bio": user.bio,
         "profilePicURL": user.profile_pic_url,
-        "onlineStatusId": user.online_status_id,
+        "onlineStatusId": 1, // Updating the stale snapshot taken at `const user = resp1.rows[0];` when the user is logged out! `await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);` updates the database but *not* the `user` variable! Now the user will have online Status "Online" upon log in
         "onlineStatusUntil": user.online_status_until,
       }
     });
