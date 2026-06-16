@@ -36,7 +36,21 @@ const getCurrentUser = async (session: any) => {
 
   console.log(`Current user: ${currentUser.id} - ${currentUser.username}`);
   return currentUser;
-}
+};
+
+// Helper function to map the database row to the exact React User interface
+const buildUserResponse = (user, statusOverride = null) => {
+  return {
+    "id": user.id,
+    "createdAt": user.created_at,
+    "username": user.username,
+    "displayName": user.display_name,
+    "bio": user.bio,
+    "profilePicURL": user.profile_pic_url,
+    "onlineStatusId": statusOverride !== null ? statusOverride : user.online_status_id, // If we pass an override (like 1 for login), use it! Otherwise, use the DB value
+    "onlineStatusUntil": user.online_status_until,
+  }
+};
 
 // MIDDLEWARE
 app.use(express.json());
@@ -107,7 +121,7 @@ app.get("/users", async (req, res) => {
   const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
   const data = await response.json();
   res.json(data);
-})
+});
 
 // AUTH ENDPOINTS
 app.post("/login", async (req, res) => {
@@ -201,6 +215,8 @@ app.get("/me", async (req, res) => {
     if (!user) {
       return res.status(401).json({"success": "not ok"});
     }
+
+    // Return the data in the same exact shape we do in /login according to the User interface contract. Which creates the need for a helper function so that we don't repeat ourselves!
 
   } catch (err) {
     console.error(err);
