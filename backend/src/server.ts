@@ -185,6 +185,27 @@ app.get("/me", async (req, res) => {
   if (!(req.session && (req.session as any).userId)) {
     return res.status(401).json({"success": "not ok"}); // No cookie, no entry
   }
+
+  try {
+    const userId = (req.session as any).userId
+
+    // Fetch the user from the database using the now safe-to-use session user id
+    const query = {
+      name: 'fetch-current-user',
+      text: 'SELECT * FROM "User" WHERE id = $1 RETURNING *',
+      values: [userId]
+    };
+    const resp = await pool.query(query);
+    const user = resp.rows[0];
+
+    if (!user) {
+      return res.status(401).json({"success": "not ok"});
+    }
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: "not ok" });
+  }
 });
 
 // LOGGED IN ENDPOINTS
