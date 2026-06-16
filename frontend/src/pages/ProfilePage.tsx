@@ -31,10 +31,10 @@ const ProfilePage = () => {
 
   // Same useEffect used in LoginForm.tsx
   useEffect(() => {
-      if (!currentUser) return;
-      
-      console.log("From ProfilePage.tsx: React has successfully updated the currentUser state to:", currentUser);
-    }, [currentUser]);
+    if (!currentUser) return;
+
+    console.log("From ProfilePage.tsx: React has successfully updated the currentUser state to:", currentUser);
+  }, [currentUser]);
 
   return (
     <div>
@@ -42,9 +42,16 @@ const ProfilePage = () => {
       {/* Will be dynamically rendered with display name / username, online status, bio etc etc etc */}
       {/* But that's when we have Log in Context working so that we have a global state for the currently logged in user */}
       {/* For now, let's just make sure log out works */}
+      <p>{currentUser?.profilePicURL || "No profile pic yet"}</p>
       <h2>{currentUser?.displayName || currentUser?.username}</h2>
       <p>{currentUser?.username}</p>
-      
+      <p>Member since {currentUser?.createdAt.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })}</p>
+      {/* <p>{OnlineStatusMap[currentUser?.onlineStatusId] || "Offline"}</p> */}
+
       <button onClick={handleLogout}>Log out</button>
       {/* Will be expanded upon with a "Logging you out..." spinner */}
     </div>

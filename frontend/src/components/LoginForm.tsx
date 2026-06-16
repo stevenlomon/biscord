@@ -45,13 +45,13 @@ const LoginForm = () => {
         setCurrentUser({
           // All of our user data is now under the key `data` so yes, we get `data.data` haha
           id: data.data.id,
-          createdAt: data.data.createdAt,
+          createdAt: new Date(data.data.createdAt), // `data.data.createdAt` is a string the moment it arrives from the server due to JSON serialization! JSON doesn't understand Dates haha; we need to do the string -> Date converstion client side!
           username: data.data.username,
           displayName: data.data.displayName,
           bio: data.data.bio,
           profilePicURL: data.data.profilePicURL,
           onlineStatusId: data.data.onlineStatusId,
-          onlineStatusUntil: data.data.onlineStatusUntil
+          onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null // Same here; needs to be client side converted to Date. But we only do the converstion if it's not undefined!
         });
         // console.log(`Current user set! data: ${currentUser}`); // This won't work due to how React's internal clock works haha
 
