@@ -6,6 +6,18 @@ import session from "express-session";
 import cors from "cors";
 import pool from "./db";
 
+// Our Backend-only Model using the data shape Postgres hands us
+interface DbUserRow {
+  id: string;
+  created_at: Date; 
+  username: string;
+  display_name: string | null;
+  bio: string | null;
+  profile_pic_url: string | null;
+  online_status_id: number | null; 
+  online_status_until: Date | null;
+}
+
 dotenv.config();
 let app = express();
 
