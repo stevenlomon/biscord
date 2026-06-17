@@ -73,6 +73,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
     currentUser, setCurrentUser
   };
 
+  // If we are still checking for a session, render a loading screen *instead of the app*
+  if (isLoadingSession) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#313338] text-white">
+        Loading 🅱️iscord...
+      </div>
+    );
+  }
+
+  // Once loading is false, render the actual application! This is also.. brain chemistry altering to say the least haha!
   return (
     <AuthContext.Provider value={value}>
       {children}
