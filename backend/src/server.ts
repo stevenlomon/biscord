@@ -187,16 +187,17 @@ app.post("/login", async (req, res) => {
     // The response is now modified to match the frontend that wants to run setCurrentUser. We have the user!! From query! Use the data haha!
     return res.json({
       "success": "ok",
-      "data": { // Perfectly matching the Interface defined in our AuthContext
-        "id": user.id,
-        "createdAt": user.created_at,
-        "username": user.username,
-        "displayName": user.display_name, // Map DB snake_case to frontend camelCase
-        "bio": user.bio,
-        "profilePicURL": user.profile_pic_url,
-        "onlineStatusId": 1, // Updating the stale snapshot taken at `const user = resp1.rows[0];` when the user is logged out! `await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);` updates the database but *not* the `user` variable! Now the user will have online Status "Online" upon log in
-        "onlineStatusUntil": user.online_status_until,
-      }
+      // "data": { // Perfectly matching the Interface defined in our AuthContext
+      //   "id": user.id,
+      //   "createdAt": user.created_at,
+      //   "username": user.username,
+      //   "displayName": user.display_name, // Map DB snake_case to frontend camelCase
+      //   "bio": user.bio,
+      //   "profilePicURL": user.profile_pic_url,
+      //   "onlineStatusId": 1, // Updating the stale snapshot taken at `const user = resp1.rows[0];` when the user is logged out! `await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);` updates the database but *not* the `user` variable! Now the user will have online Status "Online" upon log in
+      //   "onlineStatusUntil": user.online_status_until,
+      // }
+      "data": buildUserResponse(user, 1) // Now using our helper function!! Perfectly formatted automatically and using the override for online status set to 1 : Online!
     });
   } else {
     return res.status(401).json({
@@ -230,6 +231,10 @@ app.get("/me", async (req, res) => {
     }
 
     // Return the data in the same exact shape we do in /login according to the User interface contract. Which creates the need for a helper function so that we don't repeat ourselves!
+    return res.json({
+      "success": "ok",
+      "data": buildUserResponse(user) // Also using our helper function
+    });
 
   } catch (err) {
     console.error(err);
