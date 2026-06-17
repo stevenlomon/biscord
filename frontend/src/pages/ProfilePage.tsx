@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, OnlineStatusMap } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
+import { OnlineStatusMap } from "../../../shared/types/user";
 
 const ProfilePage = () => {
   const { currentUser, setCurrentUser } = useAuth();
