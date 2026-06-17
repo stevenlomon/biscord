@@ -48,7 +48,22 @@ const getCurrentUser = async (session: any) => {
 
   console.log(`Current user: ${currentUser.id} - ${currentUser.username}`);
   return currentUser;
-}
+};
+
+// Helper function to map the database row to the exact React User interface
+// Input: DbUserRow Postgres data (snake_case, Dates) ->  Output: UserDTO Network data (camelCase, Strings)
+const buildUserResponse = (user: DbUserRow, statusOverride: number | null = null) => {
+  return {
+    "id": user.id,
+    "createdAt": user.created_at,
+    "username": user.username,
+    "displayName": user.display_name,
+    "bio": user.bio,
+    "profilePicURL": user.profile_pic_url,
+    "onlineStatusId": statusOverride !== null ? statusOverride : user.online_status_id, // If we pass an override (like 1 for login), use it! Otherwise, use the DB value
+    "onlineStatusUntil": user.online_status_until,
+  }
+};
 
 // MIDDLEWARE
 app.use(express.json());
@@ -119,7 +134,7 @@ app.get("/users", async (req, res) => {
   const response = await fetch(`http://localhost:${process.env.PORT}/static/users.json`);
   const data = await response.json();
   res.json(data);
-})
+});
 
 // AUTH ENDPOINTS
 app.post("/login", async (req, res) => {
@@ -172,16 +187,17 @@ app.post("/login", async (req, res) => {
     // The response is now modified to match the frontend that wants to run setCurrentUser. We have the user!! From query! Use the data haha!
     return res.json({
       "success": "ok",
-      "data": { // Perfectly matching the Interface defined in our AuthContext
-        "id": user.id,
-        "createdAt": user.created_at,
-        "username": user.username,
-        "displayName": user.display_name, // Map DB snake_case to frontend camelCase
-        "bio": user.bio,
-        "profilePicURL": user.profile_pic_url,
-        "onlineStatusId": 1, // Updating the stale snapshot taken at `const user = resp1.rows[0];` when the user is logged out! `await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);` updates the database but *not* the `user` variable! Now the user will have online Status "Online" upon log in
-        "onlineStatusUntil": user.online_status_until,
-      }
+      // "data": { // Perfectly matching the Interface defined in our AuthContext
+      //   "id": user.id,
+      //   "createdAt": user.created_at,
+      //   "username": user.username,
+      //   "displayName": user.display_name, // Map DB snake_case to frontend camelCase
+      //   "bio": user.bio,
+      //   "profilePicURL": user.profile_pic_url,
+      //   "onlineStatusId": 1, // Updating the stale snapshot taken at `const user = resp1.rows[0];` when the user is logged out! `await pool.query('UPDATE "User" SET online_status_id = $1 WHERE id = $2', [1, user.id]);` updates the database but *not* the `user` variable! Now the user will have online Status "Online" upon log in
+      //   "onlineStatusUntil": user.online_status_until,
+      // }
+      "data": buildUserResponse(user, 1) // Now using our helper function!! Perfectly formatted automatically and using the override for online status set to 1 : Online!
     });
   } else {
     return res.status(401).json({
@@ -190,6 +206,41 @@ app.post("/login", async (req, res) => {
   }
 
   // res.send(":)");
+});
+
+app.get("/me", async (req, res) => {
+  // Guard clause: check if the session cookie exists and has a valid userId
+  if (!(req.session && (req.session as any).userId)) {
+    return res.status(401).json({"success": "not ok"}); // No cookie, no entry
+  }
+
+  try {
+    const userId = (req.session as any).userId
+
+    // Fetch the user from the database using the now safe-to-use session user id
+    const query = {
+      name: 'fetch-current-user',
+      // text: 'SELECT * FROM "User" WHERE id = $1 RETURNING *',
+      text: 'SELECT * FROM "User" WHERE id = $1', // This is an important beginner mistake to make I guess haha. Adding 'RETURNING *' to a SELECT statement is like saying "Fetch me the user, and also fetch me what you just fetched.". The database engine gets confused to the point of crashing!
+      values: [userId]
+    };
+    const resp = await pool.query(query);
+    const user = resp.rows[0];
+
+    if (!user) {
+      return res.status(401).json({"success": "not ok"});
+    }
+
+    // Return the data in the same exact shape we do in /login according to the User interface contract. Which creates the need for a helper function so that we don't repeat ourselves!
+    return res.json({
+      "success": "ok",
+      "data": buildUserResponse(user) // Also using our helper function
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: "not ok" });
+  }
 });
 
 // LOGGED IN ENDPOINTS

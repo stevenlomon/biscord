@@ -1,5 +1,5 @@
-import { useState, createContext, useContext } from "react";
-import { type OnlineStatusId } from "./../../../shared/types/user";
+import { useState, createContext, useContext, useEffect } from "react";
+import { type OnlineStatusId, type UserDTO } from "./../../../shared/types/user";
 
 // Our Frontend-only UI Model using only hydrated string-converted Dates
 interface User {
@@ -31,11 +31,58 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null); // null for now
+  const [isLoadingSession, setIsLoadingSession] = useState(true); // block the UI initially
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('http://localhost:3007/me', {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json() as { success: string, data: UserDTO };
+
+          if (data?.success === "ok") {
+            // Rehydrate the strings into Dates and re-set the user!
+            setCurrentUser({
+              id: data.data.id,
+              createdAt: new Date(data.data.createdAt),
+              username: data.data.username,
+              displayName: data.data.displayName,
+              bio: data.data.bio,
+              profilePicURL: data.data.profilePicURL,
+              onlineStatusId: data.data.onlineStatusId,
+              onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch session:", err);
+      } finally {
+        // Whether it succeeded, failed, or we aren't logged in, we are done loading. Release the UI haha!
+        setIsLoadingSession(false);
+      }
+    };
+
+    checkSession();
+  }, []); // Only on mount, and more specifically in this specific scenario: only on page refresh!
 
   const value = {
     currentUser, setCurrentUser
   };
 
+  // If we are still checking for a session, render a loading screen *instead of the app*
+  if (isLoadingSession) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#313338] text-white">
+        Loading 🅱️iscord...
+      </div>
+    );
+  }
+
+  // Once loading is false, render the actual application! This is also.. brain chemistry altering to say the least haha!
   return (
     <AuthContext.Provider value={value}>
       {children}
