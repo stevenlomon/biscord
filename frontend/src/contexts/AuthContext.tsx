@@ -1,7 +1,7 @@
 import { useState, createContext, useContext } from "react";
 import { type OnlineStatusId } from "./../../../shared/types/user";
 
-// The Frontend-only UI Model using only hydrated string-converted Dates
+// Our Frontend-only UI Model using only hydrated string-converted Dates
 interface User {
   id: string;
   createdAt: Date; // Hydrated Date!
