@@ -51,7 +51,8 @@ const getCurrentUser = async (session: any) => {
 };
 
 // Helper function to map the database row to the exact React User interface
-const buildUserResponse = (user, statusOverride = null) => {
+// Input: DbUserRow Postgres data (snake_case, Dates) ->  Output: UserDTO Network data (camelCase, Strings)
+const buildUserResponse = (user: DbUserRow, statusOverride: number | null = null) => {
   return {
     "id": user.id,
     "createdAt": user.created_at,
