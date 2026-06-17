@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { type UserDTO } from '../../../shared/types/user';
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -31,7 +32,8 @@ const LoginForm = () => {
       });
       console.log("Raw Response Status:", response.status);
 
-      const data = await response.json();
+      // Since we now have the UserDTO in the shared folder between backend and frontend, we can now type the response JSON!! This.. is insanely brain chemistry altering haha
+      const data = await response.json() as { success: string, data: UserDTO };
       console.log("Parsed JSON Data from Server:", data);
 
       // The response will either have "sucess": "ok" or "sucess": "not ok"
