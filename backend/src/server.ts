@@ -220,7 +220,8 @@ app.get("/me", async (req, res) => {
     // Fetch the user from the database using the now safe-to-use session user id
     const query = {
       name: 'fetch-current-user',
-      text: 'SELECT * FROM "User" WHERE id = $1 RETURNING *',
+      // text: 'SELECT * FROM "User" WHERE id = $1 RETURNING *',
+      text: 'SELECT * FROM "User" WHERE id = $1', // This is an important beginner mistake to make I guess haha. Adding 'RETURNING *' to a SELECT statement is like saying "Fetch me the user, and also fetch me what you just fetched.". The database engine gets confused to the point of crashing!
       values: [userId]
     };
     const resp = await pool.query(query);
