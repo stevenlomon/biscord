@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { OnlineStatusMap } from "../../../shared/types/user";
 
@@ -46,6 +46,8 @@ const ProfilePage = () => {
       <p>{currentUser?.profilePicURL || "No profile pic yet"}</p>
       <h2>{currentUser?.displayName || currentUser?.username}</h2>
       <p>{currentUser?.username}</p>
+      <Link to={'/edit-profile'}><button>Edit Profile</button></Link>
+      <p>{currentUser?.bio || "No bio set"}</p>
       <p>Member since {currentUser?.createdAt.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
