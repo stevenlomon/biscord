@@ -21,9 +21,16 @@ const EditProfilePage = () => {
   // Turns out... neither the state nor the useEffect is needed haha! We can calculate and check it immediately using derived state! This also removes the need for `setUnsavedChanges(true);` in the onChange handlers! Massive simplification 
   const hasUnsavedChanges = displayName !== currentUser?.displayName || bio !== currentUser?.bio
 
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    console.log("Changes would now be saved!");
+    // POST request to be implemented
+    // And hasUnsavedChanges will be set back to false automatically once the POST request does its job!
+  }
+
   return (
     <div>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div>
           <label><strong>Display Name</strong></label>
           <input
@@ -44,9 +51,21 @@ const EditProfilePage = () => {
           {/* TODO: 190 character remaining counter, emoji picker */}
         </div>
 
-        {/* TODO: Careful — you have unsaved changes! (Reset) (Save Changes) */}
+        {hasUnsavedChanges && ( // Using `&& ()` instead of `? () : ("")` is way cleaner 
+          <div>
+            <p>Careful — you have unsaved changes!</p>
+            <button
+              type="button" // Prevent the form from submitting upon click!
+              onClick={() => {
+                setBio(currentUser?.bio)
+                setDisplayName(currentUser?.displayName)
+              }}>
+              Reset
+            </button>
+            <button type="submit">Save Changes</button>
+          </div>
+        )}
       </form>
-      {hasUnsavedChanges ? "Careful — you have unsaved changes!" : "There are no unsaved changes"}
     </div>
   )
 }
