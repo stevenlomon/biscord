@@ -17,3 +17,5 @@ const generateDays = (start = 1, end = 31) =>
   Array.from({ length: end - start + 1 }, (_, i) => i + start);
 
 export const DAYS = generateDays();
+
+export const MAX_CHARS_BIO = 190;

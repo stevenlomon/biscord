@@ -1,10 +1,12 @@
 import { useState } from "react"
 import { useAuth } from "../contexts/AuthContext"
+import { MAX_CHARS_BIO } from "../utils";
 
 const EditProfilePage = () => {
   const { currentUser } = useAuth();
   const [displayName, setDisplayName] = useState(currentUser?.displayName);
   const [bio, setBio] = useState(currentUser?.bio);
+  const BIO_CHARS_LEFT = bio ? MAX_CHARS_BIO - bio.length : MAX_CHARS_BIO
   // const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   // useEffect(() => {
@@ -48,7 +50,8 @@ const EditProfilePage = () => {
             value={bio ?? ""}
             onChange={(e) => setBio(e.target.value)}
           />
-          {/* TODO: 190 character remaining counter, emoji picker */}
+          {/* TODO: emoji picker, custom tooltip */}
+          <p title={`${BIO_CHARS_LEFT} characters remaining`}>{BIO_CHARS_LEFT}</p>
         </div>
 
         {hasUnsavedChanges && ( // Using `&& ()` instead of `? () : ("")` is way cleaner 
