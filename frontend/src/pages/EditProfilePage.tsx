@@ -6,6 +6,8 @@ const EditProfilePage = () => {
   const { currentUser } = useAuth();
   const [displayName, setDisplayName] = useState(currentUser?.displayName);
   const [bio, setBio] = useState(currentUser?.bio);
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const BIO_CHARS_LEFT = bio ? MAX_CHARS_BIO - bio.length : MAX_CHARS_BIO
   // const [unsavedChanges, setUnsavedChanges] = useState(false);
 
@@ -50,8 +52,30 @@ const EditProfilePage = () => {
             value={bio ?? ""}
             onChange={(e) => setBio(e.target.value)}
           />
-          {/* TODO: emoji picker, custom tooltip */}
-          <p title={`${BIO_CHARS_LEFT} characters remaining`}>{BIO_CHARS_LEFT}</p>
+          {/* TODO: emoji picker */}
+
+          {/* Relative Wrapper: inline-block so the wrapper hugs the text tightly */}
+          <div className="relative inline-block mt-2">
+            {/* The actual counter text */}
+            <p 
+              onMouseEnter={() => setShowTooltip(true)} 
+              onMouseLeave={() => setShowTooltip(false)}
+              className="text-xs font-bold text-[#B5BAC1] cursor-default"
+            >
+              {MAX_CHARS_BIO - (bio ?? "").length}
+            </p>
+
+            {/* The Custom Absolute Tooltip */}
+            {showTooltip && (
+              // bottom-full pushes it above the text, -translate-x-1/2 centers it horizontally
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#111214] text-[#DBDEE1] text-xs font-semibold rounded shadow-lg whitespace-nowrap z-50 pointer-events-none">
+                {BIO_CHARS_LEFT} characters remaining
+                
+                {/* The tiny downward-pointing triangle */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#111214]"></div>
+              </div>
+            )}
+          </div>
         </div>
 
         {hasUnsavedChanges && ( // Using `&& ()` instead of `? () : ("")` is way cleaner 
