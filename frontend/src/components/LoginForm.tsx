@@ -57,7 +57,7 @@ const LoginForm = () => {
         });
         // console.log(`Current user set! data: ${currentUser}`); // This won't work due to how React's internal clock works haha
 
-        navigate('/profile');
+        navigate('/create-server');
       } else if (data?.success === "not ok") { // Let's just check it explicitly since we know the binary outcomes
         // Here we need to re-render the page and display "Wrong username or password. Try again" 
         // Is it best practice to wipe or not wipe upon a failed login attempt?
