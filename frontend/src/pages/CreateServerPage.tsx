@@ -2,7 +2,7 @@ import { useState } from 'react'
 import CreateServerForm from '../components/CreateServerForm';
 
 const CreateServerPage = () => {
-  const [onboardingPageShowing, setOnboardingPageShowing] = useState(1);
+  const [onboardingPageShowing, setOnboardingPageShowing] = useState(1); // We could apparently also use a union type OnboardingStep = "INTRO" | "CUSTOMIZE" | "JOIN_A_SERVER"; but let's stick to the simple integers for now
 
   return (
     <>
