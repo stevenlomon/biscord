@@ -2,7 +2,12 @@ import { useState } from "react"
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 
-const CreateServerForm = () => {
+// Define the props interface to accept the onBack function
+interface CreateServerFormProps {
+  onBack: () => void;
+}
+
+const CreateServerForm = ({ onBack }: CreateServerFormProps) => {
   const { currentUser } = useAuth();
   const [serverName, setServerName] = useState(currentUser?.displayName ? `${currentUser.displayName}'s server` : `${currentUser?.username}'s server`);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +55,50 @@ const CreateServerForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Server Name <span>*</span></label>
-      <input type="text" value={serverName} onChange={(e) => setServerName(e.target.value)} />
-      <p>Community Guidelines? No idea what that is</p>
-      <button type="submit">Create</button>
+    <form onSubmit={handleSubmit} className="w-full text-left flex flex-col">
+      
+      {/* Input Field */}
+      <div className="mb-4">
+        <label className="text-xs font-bold text-[#B5BAC1] uppercase tracking-wide mb-2 block">
+          Server Name <span className="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          value={serverName} 
+          onChange={(e) => setServerName(e.target.value)} 
+          className="w-full bg-[#1E1F22] text-[#DBDEE1] rounded-[3px] p-[10px] focus:outline-none focus:ring-1 focus:ring-[#00A8FC] transition-shadow"
+          required
+        />
+      </div>
+
+      {/* Error State */}
+      {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
+
+      {/* Scuffed Guidelines */}
+      <p className="text-xs text-[#B5BAC1] mb-6">
+        🅱️iscord's <span className="text-[#00A8FC] font-medium">Community Guidelines?</span> No idea what that is.
+      </p>
+
+      {/* The Magic Footer! 
+        -mx-6 (negative margin left/right) pulls it perfectly into the edges of the parent padding
+        -mb-6 (negative margin bottom) anchors it to the bottom 
+      */}
+      <div className="bg-[#2B2D31] -mx-6 -mb-6 px-6 py-4 flex items-center justify-between mt-auto">
+        <button 
+          type="button" 
+          onClick={onBack}
+          className="text-white hover:underline text-sm font-medium transition-all"
+        >
+          Back
+        </button>
+        <button 
+          type="submit"
+          className="bg-[#5865F2] hover:bg-[#4752C4] text-white font-medium rounded-[3px] px-6 py-2 transition-colors text-sm"
+        >
+          Create
+        </button>
+      </div>
+
     </form>
   )
 }
