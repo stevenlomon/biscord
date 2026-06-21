@@ -92,6 +92,13 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Error state display */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 rounded-[3px] p-3">
+          <p className="text-xs font-medium text-red-500">{error}</p>
+        </div>
+      )}
+
       {/* Username Field */}
       <div className="flex flex-col gap-2">
         <label className="text-xs font-bold text-[#B5BAC1] uppercase tracking-wide">
