@@ -13,7 +13,6 @@ const LoginForm = () => {
   let navigate = useNavigate();
 
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    // To be implemented
     e.preventDefault();
 
     // Make the POST login request in order to check the response from the server
