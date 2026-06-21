@@ -243,6 +243,53 @@ app.get("/me", async (req, res) => {
   }
 });
 
+// SERVER ENDPOINTS
+app.post("/create-server", requireAuth, async (req, res) => {
+  // Will only take name for now from the frontend. I will tackle images in the not-to-distant future
+  // This endpoint will interact with the Server table and the Server_User junction table with current_user being the user
+  // I guess this is an API design decicion we need to make: make an endpoint that you need to logged in to interact with where you as the logged in user automatically becomes the admin of the server you're creating (the option I'm opting for) 
+  // OR create an API admin endpoint that doesn't require you to be a logged in user that ONLY creates a server and then a separate endpoint that connects user to endpoint. I like the sound of the first one better for now!
+  // I've added is_admin as a boolean row to Server_User which will be true in this endpoint
+  
+  const currentUser = await getCurrentUser(req.session); // 
+
+  try {
+    // Only checks the request body for `name`. id is created here on the server, created_at is created in Postgres
+    const serverId = crypto.randomUUID(); // Data type for user changed from INT to String in Postgres to accomodate. Let's give each server a proper UUID
+
+    const query1 = {
+      name: 'create-new-server',
+      text: 'INSERT INTO "Server"(id, name) VALUES($1, $2) RETURNING *', 
+      values: [serverId, req.body.name] // Will include server image in a future update
+    };
+    const resp1 = await pool.query(query1);
+    const server = resp1.rows[0];
+    console.log("Server creation response: ", server);
+
+    const query2 = {
+      name: 'set-current-user-to-server-admin',
+      text: 'INSERT INTO "Server_User"(user_id, server_id, is_admin) VALUES ($1, $2, $3) RETURNING *',
+      values: [currentUser.id, server.id, true] // Use the server we just created, not serverID, to stress test the creation already here
+    };
+    const resp2 = await pool.query(query2);
+    const serverUser = resp2.rows[0];
+    console.log("Server-User connection creation response: ", serverUser);
+
+    res.status(201).json({ // 201 created status code
+    "success": "ok",
+    "data": {
+      // Use what we've just created, not req.body and serverId, to ensure 100% everything is working properly. Will change all other endpoints to follow this same principle
+      "id": server.id,
+      "name": server.name,
+      "current_user_is_admin": serverUser.is_admin
+    }
+  });    
+  } catch (err) {
+    console.error("Error when creating server: ", err);  
+    res.status(500).json({ success: "not ok" });  
+  }
+})
+
 // LOGGED IN ENDPOINTS
 app.get("/profile", requireAuth, async (req, res) => {
   const currentUser = await getCurrentUser(req.session);
