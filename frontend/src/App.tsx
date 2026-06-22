@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
 import EditProfilePage from "./pages/EditProfilePage";
 import CreateServerPage from "./pages/CreateServerPage";
+import ServerPage from "./pages/ServerPage";
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
           <Route path='login' element={< LoginPage />} />
           <Route path='register' element={<RegisterPage />} />
           <Route path='create-server' element={<CreateServerPage />} />
+          <Route path='server/:id' element={<ServerPage />} />
           <Route path='profile' element={< ProfilePage />} />
           <Route path='edit-profile' element={<EditProfilePage />} />
         </Route>
