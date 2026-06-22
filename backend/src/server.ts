@@ -63,6 +63,7 @@ const buildUserResponse = (user: DbUserRow, statusOverride: number | null = null
     "profilePicURL": user.profile_pic_url,
     "onlineStatusId": statusOverride !== null ? statusOverride : user.online_status_id, // If we pass an override (like 1 for login), use it! Otherwise, use the DB value
     "onlineStatusUntil": user.online_status_until,
+    "lastServerVisited": user.last_server_visited // Forgot to update this until I saw undefined in the login response haha!
   }
 };
 
