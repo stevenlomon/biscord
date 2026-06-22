@@ -11,6 +11,7 @@ interface User {
   profilePicURL: string | null;
   onlineStatusId: OnlineStatusId | null; // Will now look for the Id integer, not the string. Future proofing for translations and we eliminate the need for INNER JOINS in the backend. We're letting the database handle the data and React handle the UI (translating via `OnlineStatusMap[currentUser.onlineStatusId]`)
   onlineStatusUntil: Date | null; // Hydrated Date!
+  lastServerVisited: string | null;
 }
 
 // Defining the shape of the AuthContext
@@ -54,7 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
               bio: data.data.bio,
               profilePicURL: data.data.profilePicURL,
               onlineStatusId: data.data.onlineStatusId,
-              onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null
+              onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null,
+              lastServerVisited: data.data.lastServerVisited
             });
           }
         }

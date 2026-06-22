@@ -16,6 +16,7 @@ interface DbUserRow {
   profile_pic_url: string | null;
   online_status_id: number | null; 
   online_status_until: Date | null;
+  last_server_visited: string | null;
 }
 
 dotenv.config();
