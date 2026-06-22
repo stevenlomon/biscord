@@ -19,4 +19,5 @@ export interface UserDTO {
   profilePicURL: string | null;
   onlineStatusId: OnlineStatusId | null;
   onlineStatusUntil: string | null; // Over the network, once again: string!
+  lastServerVisited: string | null;
 };
