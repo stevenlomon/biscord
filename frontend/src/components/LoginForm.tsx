@@ -52,11 +52,20 @@ const LoginForm = () => {
           bio: data.data.bio,
           profilePicURL: data.data.profilePicURL,
           onlineStatusId: data.data.onlineStatusId,
-          onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null // Same here; needs to be client side converted to Date. But we only do the converstion if it's not undefined!
+          onlineStatusUntil: data.data.onlineStatusUntil ? new Date(data.data.onlineStatusUntil) : null, // Same here; needs to be client side converted to Date. But we only do the converstion if it's not undefined!
+          lastServerVisited: data.data.lastServerVisited
         });
         // console.log(`Current user set! data: ${currentUser}`); // This won't work due to how React's internal clock works haha
 
-        navigate('/create-server');
+        // NEW: Has the current user visited a server? 
+        // Needs to check `data.data.lastServerVisited` and not currentUser.lastServerVisited due to React timing if I understand correctly
+        if (data.data.lastServerVisited) {
+          // If they have, navigate to the last visited server. The variable is a FK that holds the Id of the server!
+          navigate(`/server/${data.data.lastServerVisited}`);
+        } else {
+          // Else, navigate to the page where they get to create their server!
+          navigate('/create-server');
+        }
       } else if (data?.success === "not ok") { // Let's just check it explicitly since we know the binary outcomes
         // Here we need to re-render the page and display "Wrong username or password. Try again" 
         // Is it best practice to wipe or not wipe upon a failed login attempt?
